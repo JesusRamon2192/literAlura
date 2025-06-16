@@ -1,47 +1,77 @@
 package com.alurachallenge.literalura.model;
 
-import jakarta.persistence.* ;
+import com.alurachallenge.literalura.model.Autor;
+import com.alurachallenge.literalura.model.DatosLibro;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Entity
+@Table(name = "libros")
 public class Libro {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
+
+    @Column(unique = true)
     private String titulo;
+
+    @Transient
     private List<Autor> autores = new ArrayList<>();
+
+    @Transient
     private List<String> resumenes;
+
+    @Transient
     private List<String> idiomas;
+
     private Integer descargas;
 
-    public Libro(){}
+    @Column(name = "autor")
+    private String autoresStr;
+
+    @Column(name = "idioma")
+    private String idiomasStr;
+
+    @Column(name = "resumen")
+    private String resumenStr;
+
+    public Libro() {}
 
     public Libro(DatosLibro datosLibro){
         this.titulo = datosLibro.titulo();
-
         this.autores = datosLibro.autores().stream()
                 .map(Autor::new)
                 .collect(Collectors.toList());
-
         this.resumenes = datosLibro.resumenes();
-        this.descargas = datosLibro.descargas();
         this.idiomas = datosLibro.idiomas();
+        this.descargas = datosLibro.descargas();
+
+        // Calcula los campos de string con los datos ya cargados
+        this.autoresStr = autores.stream()
+                .map(Autor::getNombre)
+                .collect(Collectors.joining(", "));
+
+        this.idiomasStr = (idiomas != null && !idiomas.isEmpty())
+                ? idiomas.get(0)
+                : "N/A";
+
+        this.resumenStr = (resumenes != null && !resumenes.isEmpty())
+                ? resumenes.get(0)
+                : "N/A";
     }
 
     @Override
     public String toString() {
-        String autoresStr = autores.stream()
-                .map(Autor::getNombre)
-                .collect(Collectors.joining(", "));
-
-        String idiomasStr = (idiomas != null ? String.join(", ", idiomas) : "N/A");
-
         return  "---- LIBRO -----" + "\n" +
                 "titulo: " + titulo + "\n" +
                 "autores: " + autoresStr + "\n" +
                 "idioma: " + idiomasStr + "\n" +
+                //"resumen: " + resumenStr + "\n" +
                 "descargas: " + descargas + "\n" +
-                "----------------" + "\n" ;
+                "----------------" + "\n";
     }
 
     public Long getId() {
@@ -90,5 +120,29 @@ public class Libro {
 
     public void setDescargas(Integer descargas) {
         this.descargas = descargas;
+    }
+
+    public String getAutoresStr() {
+        return autoresStr;
+    }
+
+    public void setAutoresStr(String autoresStr) {
+        this.autoresStr = autoresStr;
+    }
+
+    public String getIdiomasStr() {
+        return idiomasStr;
+    }
+
+    public void setIdiomasStr(String idiomasStr) {
+        this.idiomasStr = idiomasStr;
+    }
+
+    public String getResumenStr() {
+        return resumenStr;
+    }
+
+    public void setResumenStr(String resumenStr) {
+        this.resumenStr = resumenStr;
     }
 }
