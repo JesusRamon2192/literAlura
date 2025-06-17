@@ -1,6 +1,7 @@
 package com.alurachallenge.literalura.principal;
 
 import com.alurachallenge.literalura.model.Autor;
+import com.alurachallenge.literalura.repository.LibroRepository;
 import org.springframework.stereotype.Component;
 import com.alurachallenge.literalura.model.DatosAutor;
 import com.alurachallenge.literalura.model.DatosLibro;
@@ -19,8 +20,13 @@ public class Principal {
     private ConsumoAPI consumoApi = new ConsumoAPI();
     private final String URL = "https://gutendex.com/books/";
     private ConvierteDatos conversor = new ConvierteDatos();
+    private LibroRepository repositorio;
     private List<DatosLibro> datosLibros = new ArrayList<>();
-    List<Libro> libros = new ArrayList<>();
+
+    public Principal(LibroRepository repository) {
+        this.repositorio = repository;
+    }
+
 
     public  void muestraElMenu() {
 
@@ -77,16 +83,19 @@ public class Principal {
     private void buscarLibroPorTitulo() {
         DatosLibro datos = getDatosLibro();
         Libro libro = new Libro(datos);
-        datosLibros.add(datos);
+        repositorio.save(libro);
+        //datosLibros.add(datos);
         System.out.println("Libro encontrado;");
         //System.out.println(datos);
         System.out.println(libro);
     }
 
     private void listarLibrosRegistrados() {
-        libros = datosLibros.stream()
+        List<Libro> libros = datosLibros.stream()
                 .map(d -> new Libro(d))
                 .collect(Collectors.toList());
+
+        //List<Libro> libros = repositorio.findAll();
 
         libros.stream()
                 .forEach(System.out::println);

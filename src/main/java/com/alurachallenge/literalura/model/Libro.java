@@ -22,9 +22,6 @@ public class Libro {
     private List<Autor> autores = new ArrayList<>();
 
     @Transient
-    private List<String> resumenes;
-
-    @Transient
     private List<String> idiomas;
 
     private Integer descargas;
@@ -35,9 +32,6 @@ public class Libro {
     @Column(name = "idioma")
     private String idiomasStr;
 
-    @Column(name = "resumen")
-    private String resumenStr;
-
     public Libro() {}
 
     public Libro(DatosLibro datosLibro){
@@ -45,7 +39,6 @@ public class Libro {
         this.autores = datosLibro.autores().stream()
                 .map(Autor::new)
                 .collect(Collectors.toList());
-        this.resumenes = datosLibro.resumenes();
         this.idiomas = datosLibro.idiomas();
         this.descargas = datosLibro.descargas();
 
@@ -58,9 +51,6 @@ public class Libro {
                 ? idiomas.get(0)
                 : "N/A";
 
-        this.resumenStr = (resumenes != null && !resumenes.isEmpty())
-                ? resumenes.get(0)
-                : "N/A";
     }
 
     @Override
@@ -69,7 +59,6 @@ public class Libro {
                 "titulo: " + titulo + "\n" +
                 "autores: " + autoresStr + "\n" +
                 "idioma: " + idiomasStr + "\n" +
-                //"resumen: " + resumenStr + "\n" +
                 "descargas: " + descargas + "\n" +
                 "----------------" + "\n";
     }
@@ -96,14 +85,6 @@ public class Libro {
 
     public void setAutores(List<Autor> autores) {
         this.autores = autores;
-    }
-
-    public List<String> getResumenes() {
-        return resumenes;
-    }
-
-    public void setResumenes(List<String> resumenes) {
-        this.resumenes = resumenes;
     }
 
     public List<String> getIdiomas() {
@@ -136,13 +117,5 @@ public class Libro {
 
     public void setIdiomasStr(String idiomasStr) {
         this.idiomasStr = idiomasStr;
-    }
-
-    public String getResumenStr() {
-        return resumenStr;
-    }
-
-    public void setResumenStr(String resumenStr) {
-        this.resumenStr = resumenStr;
     }
 }
