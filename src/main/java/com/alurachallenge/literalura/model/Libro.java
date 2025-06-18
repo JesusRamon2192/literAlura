@@ -5,6 +5,7 @@ import com.alurachallenge.literalura.model.DatosLibro;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,8 +19,8 @@ public class Libro {
     @Column(unique = true)
     private String titulo;
 
-    @Transient
-    private List<Autor> autores = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Autor autor;
 
     @Transient
     private List<String> idiomas;
@@ -36,16 +37,12 @@ public class Libro {
 
     public Libro(DatosLibro datosLibro){
         this.titulo = datosLibro.titulo();
-        this.autores = datosLibro.autores().stream()
-                .map(Autor::new)
-                .collect(Collectors.toList());
+        this.autor = new Autor(datosLibro.autores().get(0));
         this.idiomas = datosLibro.idiomas();
         this.descargas = datosLibro.descargas();
 
         // Calcula los campos de string con los datos ya cargados
-        this.autoresStr = autores.stream()
-                .map(Autor::getNombre)
-                .collect(Collectors.joining(", "));
+        this.autoresStr = autor.getNombre();
 
         this.idiomasStr = (idiomas != null && !idiomas.isEmpty())
                 ? idiomas.get(0)
@@ -57,7 +54,7 @@ public class Libro {
     public String toString() {
         return  "---- LIBRO -----" + "\n" +
                 "titulo: " + titulo + "\n" +
-                "autores: " + autoresStr + "\n" +
+                "autores: " + autor.getNombre() + "\n" +
                 "idioma: " + idiomasStr + "\n" +
                 "descargas: " + descargas + "\n" +
                 "----------------" + "\n";
@@ -79,12 +76,12 @@ public class Libro {
         this.titulo = titulo;
     }
 
-    public List<Autor> getAutores() {
-        return autores;
+    public Autor getAutor() {
+        return autor;
     }
 
-    public void setAutores(List<Autor> autores) {
-        this.autores = autores;
+    public void setAutor(Autor autor) {
+        this.autor = autor;
     }
 
     public List<String> getIdiomas() {

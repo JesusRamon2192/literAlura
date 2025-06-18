@@ -1,6 +1,7 @@
 package com.alurachallenge.literalura.principal;
 
 import com.alurachallenge.literalura.model.Autor;
+import com.alurachallenge.literalura.repository.AutorRepository;
 import com.alurachallenge.literalura.repository.LibroRepository;
 import org.springframework.stereotype.Component;
 import com.alurachallenge.literalura.model.DatosAutor;
@@ -21,10 +22,12 @@ public class Principal {
     private final String URL = "https://gutendex.com/books/";
     private ConvierteDatos conversor = new ConvierteDatos();
     private LibroRepository repositorio;
+    private AutorRepository repositorioA;
     private List<DatosLibro> datosLibros = new ArrayList<>();
 
-    public Principal(LibroRepository repository) {
+    public Principal(LibroRepository repository, AutorRepository autorRepository) {
         this.repositorio = repository;
+        this.repositorioA = autorRepository;
     }
 
 
@@ -82,49 +85,40 @@ public class Principal {
 
     private void buscarLibroPorTitulo() {
         DatosLibro datos = getDatosLibro();
+        // Buscar o crear autor
+        DatosAutor datosAutor = datos.autores().get(0);
+
+        Autor autor = repositorioA.findByNombre(datosAutor.nombre())
+                .orElseGet(() -> {
+                    Autor nuevoAutor = new Autor(datosAutor);
+                    return repositorioA.save(nuevoAutor);
+                });
+
+
+        // Crear libro y asociar autor
         Libro libro = new Libro(datos);
+        libro.setAutor(autor);
+
+        // Guardar libro
         repositorio.save(libro);
-        //datosLibros.add(datos);
+
         System.out.println("Libro encontrado;");
-        //System.out.println(datos);
         System.out.println(libro);
     }
 
     private void listarLibrosRegistrados() {
-        List<Libro> libros = datosLibros.stream()
-                .map(d -> new Libro(d))
-                .collect(Collectors.toList());
-
-        //List<Libro> libros = repositorio.findAll();
-
+//        List<Libro> libros = datosLibros.stream()
+//                .map(d -> new Libro(d))
+//                .collect(Collectors.toList());
+        List<Libro> libros = repositorio.findAll();
         libros.stream()
                 .forEach(System.out::println);
 
     }
 
     private void listarAutoresRegistrados() {
-        List<Autor> autores = new ArrayList<>();
+        List<Autor> autores = repositorioA.findAll();
 
-        for (DatosLibro datosLibro : datosLibros) {
-            String titulo = datosLibro.titulo();
-            for (DatosAutor datosAutor : datosLibro.autores()) {
-                // ¿Ya tenemos este autor en la lista?
-                Autor autorExistente = autores.stream()
-                        .filter(a -> a.getNombre().equalsIgnoreCase(datosAutor.nombre()))
-                        .findFirst()
-                        .orElse(null);
-
-                if (autorExistente == null) {
-                    Autor nuevoAutor = new Autor(datosAutor);
-                    nuevoAutor.agregarLibro(titulo);
-                    autores.add(nuevoAutor);
-                } else {
-                    autorExistente.agregarLibro(titulo);
-                }
-            }
-        }
-
-        // Mostrar autores
         if (autores.isEmpty()) {
             System.out.println("No hay autores registrados.");
         } else {
@@ -133,8 +127,36 @@ public class Principal {
     }
 
     private void listarAutoresVivosPorAño() {
+        System.out.print("Ingrese el año para buscar autores vivos: ");
+        int año = teclado.nextInt();
+        teclado.nextLine(); // Limpiar el buffer
+
+        List<Autor> autoresVivos = repositorioA.findAll().stream()
+                .filter(a -> a.getNacimiento() != null && a.getNacimiento() <= año)
+                .filter(a -> a.getFallecimiento() == null || a.getFallecimiento() > año)
+                .collect(Collectors.toList());
+
+        if (autoresVivos.isEmpty()) {
+            System.out.println("No se encontraron autores vivos en el año " + año);
+        } else {
+            System.out.println("Autores vivos en el año " + año + ":");
+            autoresVivos.forEach(System.out::println);
+        }
     }
 
     private void listarLibrosPorIdioma() {
+        System.out.println("Ingrese el código de idioma para buscar los libros:");
+        System.out.println("es - Español");
+        System.out.println("en - Inglés");
+        String idioma = teclado.nextLine().trim();
+
+        List<Libro> libros = repositorio.findByIdiomasStrIgnoreCase(idioma);
+
+        if (libros.isEmpty()) {
+            System.out.println("No se encontraron libros en el idioma '" + idioma + "'.");
+        } else {
+            System.out.println("Libros encontrados en el idioma '" + idioma + "':");
+            libros.forEach(System.out::println);
+        }
     }
 }
